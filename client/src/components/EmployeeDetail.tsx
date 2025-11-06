@@ -3,7 +3,7 @@ import { calculateWorkBonus } from '@/utils/bonusCalculator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Award, Calendar, Mail, MapPin, Phone, Briefcase, User, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Award, Calendar, Mail, MapPin, Phone, Briefcase, User, Edit, Trash2, IdCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
@@ -111,10 +111,20 @@ export const EmployeeDetail = ({ employee, onDelete }: EmployeeDetailProps) => {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <div className="flex items-start gap-2">
+                  <IdCard className="h-4 w-4 mt-1 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">NIK Karyawan (Employee ID)</p>
+                    <p className="text-sm font-semibold">{employee.nik}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
                   <User className="h-4 w-4 mt-1 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">NIK</p>
-                    <p className="text-sm">{employee.nik}</p>
+                    <p className="text-sm font-medium text-muted-foreground">NIK Personal (KTP)</p>
+                    <p className="text-sm font-semibold">{employee.nikPersonal}</p>
                   </div>
                 </div>
               </div>
@@ -171,6 +181,16 @@ export const EmployeeDetail = ({ employee, onDelete }: EmployeeDetailProps) => {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Department</p>
                     <p className="text-sm">{employee.department}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <Calendar className="h-4 w-4 mt-1 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Joining Date</p>
+                    <p className="text-sm font-semibold">{employee.joiningYear}</p>
                   </div>
                 </div>
               </div>
@@ -235,18 +255,22 @@ export const EmployeeDetail = ({ employee, onDelete }: EmployeeDetailProps) => {
                   <p className="text-lg font-semibold">{workBonus.yearsOfService} years</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Joining Year</p>
+                  <p className="text-sm font-medium text-muted-foreground">Joining Date</p>
                   <p className="text-lg font-semibold">{employee.joiningYear}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Bonuses Received</p>
+                  <p className="text-lg font-semibold">{workBonus.bonusCount} bonus(es)</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Bonus Eligibility</p>
+                  <p className="text-sm font-medium text-muted-foreground">Current Bonus Status</p>
                   {workBonus.eligible ? (
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="default" className="bg-success">
-                        Eligible for Bonus
+                        ✓ Eligible for Bonus
                       </Badge>
                       <span className="text-sm text-muted-foreground">
                         (Bonus #{workBonus.bonusCount})
@@ -257,21 +281,36 @@ export const EmployeeDetail = ({ employee, onDelete }: EmployeeDetailProps) => {
                   )}
                 </div>
 
-                <div className="rounded-lg bg-accent p-4">
-                  <p className="text-sm font-medium mb-2">Notes</p>
-                  {workBonus.eligible ? (
-                    <p className="text-sm text-muted-foreground">
-                      🎉 Congratulations! This employee has completed {workBonus.yearsOfService} years of service
-                      and is eligible for their {workBonus.bonusCount === 1 ? '1st' : 
-                      workBonus.bonusCount === 2 ? '2nd' : 
-                      workBonus.bonusCount === 3 ? '3rd' : 
-                      `${workBonus.bonusCount}th`} work bonus. 
-                      {workBonus.nextBonusIn > 0 && ` Next bonus in ${workBonus.nextBonusIn} years.`}
+                {workBonus.lastBonusDate && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Last Bonus Date</p>
+                    <p className="text-sm font-semibold">{workBonus.lastBonusDate}</p>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Next Bonus Date</p>
+                  <p className="text-sm font-semibold">{workBonus.nextBonusDate}</p>
+                  {workBonus.nextBonusIn !== undefined && workBonus.nextBonusIn > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {workBonus.nextBonusIn} days remaining
                     </p>
+                  )}
+                </div>
+
+                <div className="rounded-lg bg-accent p-4">
+                  <p className="text-sm font-medium mb-2">Upcoming Bonus Schedule</p>
+                  {workBonus.upcomingBonusDates && workBonus.upcomingBonusDates.length > 0 ? (
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      {workBonus.upcomingBonusDates.slice(0, 3).map((date, idx) => (
+                        <li key={idx}>
+                          • Bonus #{workBonus.bonusCount + idx + 1}: {date}
+                        </li>
+                      ))}
+                    </ul>
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      This employee will be eligible for their first work bonus after completing 6 years of service.
-                      Currently at {workBonus.yearsOfService} years. {workBonus.nextBonusIn} more years to go!
+                      No upcoming bonuses scheduled yet.
                     </p>
                   )}
                 </div>

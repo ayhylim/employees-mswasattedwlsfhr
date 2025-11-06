@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const {nanoid} = require("nanoid"); // 🔹 untuk membuat id unik pendek
+const {nanoid} = require("nanoid");
 
 // Definisikan Schema untuk data Karyawan
 const EmployeeSchema = new mongoose.Schema(
@@ -11,7 +11,13 @@ const EmployeeSchema = new mongoose.Schema(
         },
         nik: {
             type: String,
-            unique: true
+            unique: true,
+            required: [true, "NIK Karyawan Should Be Filled"]
+        },
+        nikPersonal: {
+            // ✅ NEW FIELD - NIK Personal (KTP)
+            type: String,
+            required: [true, "NIK Personal (KTP) Should Be Filled"]
         },
         dateOfBirth: {
             type: String
@@ -45,8 +51,16 @@ const EmployeeSchema = new mongoose.Schema(
             default: "Contract"
         },
         joiningYear: {
-            type: Number,
-            required: [true, "Joined Year Should Be Filled"]
+            // ✅ CHANGED: from Number to String (dd/mm/yyyy format)
+            type: String,
+            required: [true, "Joining Date Should Be Filled"],
+            validate: {
+                validator: function (v) {
+                    // Validate dd/mm/yyyy format
+                    return /^\d{2}\/\d{2}\/\d{4}$/.test(v);
+                },
+                message: props => `${props.value} is not a valid date format! Use dd/mm/yyyy`
+            }
         },
 
         address: {
@@ -72,6 +86,7 @@ const EmployeeSchema = new mongoose.Schema(
     }
 );
 
+// Auto-generate ID before saving
 EmployeeSchema.pre("save", function (next) {
     if (!this.id) {
         this.id = `TMJ-${nanoid(6)}`;

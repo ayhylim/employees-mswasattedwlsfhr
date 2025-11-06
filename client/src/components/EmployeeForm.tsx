@@ -9,7 +9,6 @@ import {Textarea} from "@/components/ui/textarea";
 import {ArrowLeft, Save, Upload} from "lucide-react";
 import {useNavigate} from "react-router-dom";
 import {toast} from "@/hooks/use-toast";
-import pako from "pako";
 
 interface EmployeeFormProps {
     employee?: Employee;
@@ -23,10 +22,11 @@ export const EmployeeForm = ({employee, onSubmit}: EmployeeFormProps) => {
 
     const [formData, setFormData] = useState({
         name: employee?.name || "",
-        nik: employee?.nik || "",
+        nik: employee?.nik || "", // NIK Karyawan
+        nikPersonal: employee?.nikPersonal || "", // NIK Personal (KTP) - NEW
         position: employee?.position || "",
         status: employee?.status || "Contract",
-        joiningYear: employee?.joiningYear || new Date().getFullYear(),
+        joiningYear: employee?.joiningYear || "", // Now string (dd/mm/yyyy)
         dateOfBirth: employee?.dateOfBirth || "",
         placeOfBirth: employee?.placeOfBirth || "",
         religion: employee?.religion || "",
@@ -101,14 +101,45 @@ export const EmployeeForm = ({employee, onSubmit}: EmployeeFormProps) => {
         });
     };
 
+    // Format date from yyyy-mm-dd to dd/mm/yyyy
+    const formatToDisplay = (dateStr: string): string => {
+        if (!dateStr) return '';
+        const [year, month, day] = dateStr.split('-');
+        return `${day}/${month}/${year}`;
+    };
+
+    // Format date from dd/mm/yyyy to yyyy-mm-dd for date input
+    const formatToInput = (dateStr: string): string => {
+        if (!dateStr) return '';
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month}-${day}`;
+    };
+
+    const handleDateChange = (field: string, value: string) => {
+        // Convert from yyyy-mm-dd to dd/mm/yyyy
+        const formatted = formatToDisplay(value);
+        handleChange(field, formatted);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // ✅ FIXED: Validation
-        if (!formData.name || !formData.nik || !formData.email) {
+        // Validation
+        if (!formData.name || !formData.nik || !formData.nikPersonal || !formData.email || !formData.joiningYear) {
             toast({
                 title: "Validation Error",
-                description: "Please fill in all required fields (Name, NIK, Email)",
+                description: "Please fill in all required fields (Name, NIK Karyawan, NIK Personal, Email, Joining Date)",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        // Validate date format (dd/mm/yyyy)
+        const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+        if (!dateRegex.test(formData.joiningYear)) {
+            toast({
+                title: "Validation Error",
+                description: "Joining Date must be in dd/mm/yyyy format",
                 variant: "destructive"
             });
             return;
@@ -117,12 +148,9 @@ export const EmployeeForm = ({employee, onSubmit}: EmployeeFormProps) => {
         setIsSubmitting(true);
 
         try {
-            // ✅ FIXED: Wait untuk API request selesai
             await onSubmit(formData);
-            // Success toast sudah di-handle di parent component
         } catch (error) {
             console.error("Form submission error:", error);
-            // Error toast juga sudah di-handle di parent component
         } finally {
             setIsSubmitting(false);
         }
@@ -186,11 +214,24 @@ export const EmployeeForm = ({employee, onSubmit}: EmployeeFormProps) => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="nik">NIK *</Label>
+                                    <Label htmlFor="nik">NIK Karyawan (Employee ID) *</Label>
                                     <Input
                                         id="nik"
                                         value={formData.nik}
                                         onChange={e => handleChange("nik", e.target.value)}
+                                        placeholder="e.g., TMJ-123"
+                                        required
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="nikPersonal">NIK Personal (KTP) *</Label>
+                                    <Input
+                                        id="nikPersonal"
+                                        value={formData.nikPersonal}
+                                        onChange={e => handleChange("nikPersonal", e.target.value)}
+                                        placeholder="e.g., 3201234567890123"
                                         required
                                         disabled={isSubmitting}
                                     />
@@ -224,16 +265,20 @@ export const EmployeeForm = ({employee, onSubmit}: EmployeeFormProps) => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="joiningYear">Joining Year</Label>
+                                    <Label htmlFor="joiningYear">Joining Date (dd/mm/yyyy) *</Label>
                                     <Input
                                         id="joiningYear"
-                                        type="number"
-                                        value={formData.joiningYear}
-                                        onChange={e => handleChange("joiningYear", parseInt(e.target.value))}
-                                        min="1980"
-                                        max={new Date().getFullYear()}
+                                        type="date"
+                                        value={formatToInput(formData.joiningYear)}
+                                        onChange={e => handleDateChange("joiningYear", e.target.value)}
+                                        required
                                         disabled={isSubmitting}
                                     />
+                                    {formData.joiningYear && (
+                                        <p className="text-xs text-muted-foreground">
+                                            Selected: {formData.joiningYear}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="space-y-2">
