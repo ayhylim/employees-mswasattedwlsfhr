@@ -6,7 +6,7 @@ import {Label} from "@/components/ui/label";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Textarea} from "@/components/ui/textarea";
-import {ArrowLeft, Save, Upload} from "lucide-react";
+import {ArrowLeft, Save} from "lucide-react";
 import {useNavigate} from "react-router-dom";
 import {toast} from "@/hooks/use-toast";
 
@@ -22,11 +22,11 @@ export const EmployeeForm = ({employee, onSubmit}: EmployeeFormProps) => {
 
     const [formData, setFormData] = useState({
         name: employee?.name || "",
-        nik: employee?.nik || "", // NIK Karyawan
-        nikPersonal: employee?.nikPersonal || "", // NIK Personal (KTP) - NEW
+        nik: employee?.nik || "",
+        nikPersonal: employee?.nikPersonal || "",
         position: employee?.position || "",
         status: employee?.status || "Contract",
-        joiningYear: employee?.joiningYear || "", // Now string (dd/mm/yyyy)
+        joiningYear: employee?.joiningYear || "",
         dateOfBirth: employee?.dateOfBirth || "",
         placeOfBirth: employee?.placeOfBirth || "",
         religion: employee?.religion || "",
@@ -35,7 +35,13 @@ export const EmployeeForm = ({employee, onSubmit}: EmployeeFormProps) => {
         address: employee?.address || "",
         phoneNumber: employee?.phoneNumber || "",
         email: employee?.email || "",
-        photoUrl: employee?.photoUrl || ""
+        photoUrl: employee?.photoUrl || "",
+
+        // 🔥 NEW FIELDS
+        bankName: employee?.bankName || "",
+        accountNumber: employee?.accountNumber || "",
+        npwp: employee?.npwp || "",
+        maritalStatus: employee?.maritalStatus || "Single"
     });
 
     const handleChange = (field: string, value: string | number) => {
@@ -101,22 +107,19 @@ export const EmployeeForm = ({employee, onSubmit}: EmployeeFormProps) => {
         });
     };
 
-    // Format date from yyyy-mm-dd to dd/mm/yyyy
     const formatToDisplay = (dateStr: string): string => {
-        if (!dateStr) return '';
-        const [year, month, day] = dateStr.split('-');
+        if (!dateStr) return "";
+        const [year, month, day] = dateStr.split("-");
         return `${day}/${month}/${year}`;
     };
 
-    // Format date from dd/mm/yyyy to yyyy-mm-dd for date input
     const formatToInput = (dateStr: string): string => {
-        if (!dateStr) return '';
-        const [day, month, year] = dateStr.split('/');
+        if (!dateStr) return "";
+        const [day, month, year] = dateStr.split("/");
         return `${year}-${month}-${day}`;
     };
 
     const handleDateChange = (field: string, value: string) => {
-        // Convert from yyyy-mm-dd to dd/mm/yyyy
         const formatted = formatToDisplay(value);
         handleChange(field, formatted);
     };
@@ -128,7 +131,18 @@ export const EmployeeForm = ({employee, onSubmit}: EmployeeFormProps) => {
         if (!formData.name || !formData.nik || !formData.nikPersonal || !formData.email || !formData.joiningYear) {
             toast({
                 title: "Validation Error",
-                description: "Please fill in all required fields (Name, NIK Karyawan, NIK Personal, Email, Joining Date)",
+                description:
+                    "Please fill in all required fields (Name, NIK Karyawan, NIK Personal, Email, Joining Date)",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        // 🔥 NEW VALIDATION - Banking & Tax
+        if (!formData.bankName || !formData.accountNumber || !formData.npwp || !formData.maritalStatus) {
+            toast({
+                title: "Validation Error",
+                description: "Please fill in Bank Name, Account Number, NPWP, and Marital Status",
                 variant: "destructive"
             });
             return;
@@ -354,6 +368,71 @@ export const EmployeeForm = ({employee, onSubmit}: EmployeeFormProps) => {
                                             <SelectItem value="Confucianism">Confucianism</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                </div>
+
+                                {/* 🔥 NEW FIELD - Marital Status */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="maritalStatus">Marital Status *</Label>
+                                    <Select
+                                        value={formData.maritalStatus}
+                                        onValueChange={value => handleChange("maritalStatus", value)}
+                                        disabled={isSubmitting}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select marital status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Single">Belum Menikah</SelectItem>
+                                            <SelectItem value="Married">Menikah</SelectItem>
+                                            <SelectItem value="Divorced">Cerai</SelectItem>
+                                            <SelectItem value="Widowed">Cerai Mati</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 🔥 NEW SECTION - Banking & Tax Information */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold">Banking & Tax Information</h3>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <Label htmlFor="bankName">Bank Name *</Label>
+                                    <Input
+                                        id="bankName"
+                                        value={formData.bankName}
+                                        onChange={e => handleChange("bankName", e.target.value)}
+                                        placeholder="e.g., Bank BCA, Bank Mandiri"
+                                        required
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="accountNumber">Account Number *</Label>
+                                    <Input
+                                        id="accountNumber"
+                                        value={formData.accountNumber}
+                                        onChange={e => handleChange("accountNumber", e.target.value)}
+                                        placeholder="e.g., 1234567890"
+                                        required
+                                        disabled={isSubmitting}
+                                    />
+                                </div>
+
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="npwp">NPWP (Tax ID) *</Label>
+                                    <Input
+                                        id="npwp"
+                                        value={formData.npwp}
+                                        onChange={e => handleChange("npwp", e.target.value)}
+                                        placeholder="e.g., 12.345.678.9-012.345"
+                                        required
+                                        disabled={isSubmitting}
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        Format: XX.XXX.XXX.X-XXX.XXX (15 digits)
+                                    </p>
                                 </div>
                             </div>
                         </div>

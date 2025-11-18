@@ -2,10 +2,10 @@ export interface Employee {
     id: string;
     name: string;
     nik: string; // NIK Karyawan (TMJ-123, etc)
-    nikPersonal: string; // NIK Personal (KTP) - NEW
+    nikPersonal: string; // NIK Personal (KTP)
     position: string;
     status: string;
-    joiningYear: string; // Changed from number to string (dd/mm/yyyy format)
+    joiningYear: string; // dd/mm/yyyy format
     dateOfBirth: string;
     placeOfBirth: string;
     religion: string;
@@ -15,14 +15,20 @@ export interface Employee {
     phoneNumber: string;
     email: string;
     photoUrl?: string;
+
+    // 🔥 NEW FIELDS
+    bankName: string; // Nama Bank
+    accountNumber: string; // Nomor Rekening
+    npwp: string; // Nomor NPWP (required)
+    maritalStatus: string; // Status Pernikahan (required)
 }
 
 export interface WorkBonus {
     eligible: boolean;
     bonusCount: number;
     yearsOfService: number;
-    nextBonusDate?: string; // Changed to exact date
-    nextBonusIn?: number; // Days until next bonus
+    nextBonusDate?: string;
+    nextBonusIn?: number;
     lastBonusDate?: string;
-    upcomingBonusDates?: string[]; // Array of future bonus dates
+    upcomingBonusDates?: string[];
 }

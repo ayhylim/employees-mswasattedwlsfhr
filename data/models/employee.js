@@ -15,7 +15,6 @@ const EmployeeSchema = new mongoose.Schema(
             required: [true, "NIK Karyawan Should Be Filled"]
         },
         nikPersonal: {
-            // ✅ NEW FIELD - NIK Personal (KTP)
             type: String,
             required: [true, "NIK Personal (KTP) Should Be Filled"]
         },
@@ -51,12 +50,10 @@ const EmployeeSchema = new mongoose.Schema(
             default: "Contract"
         },
         joiningYear: {
-            // ✅ CHANGED: from Number to String (dd/mm/yyyy format)
             type: String,
             required: [true, "Joining Date Should Be Filled"],
             validate: {
                 validator: function (v) {
-                    // Validate dd/mm/yyyy format
                     return /^\d{2}\/\d{2}\/\d{4}$/.test(v);
                 },
                 message: props => `${props.value} is not a valid date format! Use dd/mm/yyyy`
@@ -78,6 +75,28 @@ const EmployeeSchema = new mongoose.Schema(
         photoUrl: {
             type: String,
             default: ""
+        },
+
+        // 🔥 NEW FIELDS - Banking & Tax Information
+        bankName: {
+            type: String,
+            required: [true, "Bank Name Should Be Filled"],
+            trim: true
+        },
+        accountNumber: {
+            type: String,
+            required: [true, "Account Number Should Be Filled"],
+            trim: true
+        },
+        npwp: {
+            type: String,
+            required: [true, "NPWP Should Be Filled"],
+            trim: true
+        },
+        maritalStatus: {
+            type: String,
+            enum: ["Single", "Married", "Divorced", "Widowed"],
+            required: [true, "Marital Status Should Be Filled"]
         }
     },
     {
